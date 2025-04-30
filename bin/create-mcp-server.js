@@ -162,7 +162,7 @@ function createProjectPackageJson() {
       "dev": "bun --watch src/index.ts",
       "start:http": "bun run src/server/http-server.ts",
       "dev:http": "bun --watch src/server/http-server.ts",
-      "prepare": "bun run build"
+      "prepare": "bun install && bun run build"
     },
     devDependencies: {
       "@types/bun": "latest",
