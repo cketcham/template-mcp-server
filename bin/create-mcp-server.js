@@ -152,13 +152,17 @@ function createProjectPackageJson() {
     version: "1.0.0",
     description: "Model Context Protocol (MCP) Server",
     private: true,
+    bin: {
+      "mcp-server": "build/index.js",
+    },
     scripts: {
       "start": "bun run src/index.ts",
       "build": "bun build src/index.ts --outdir build --target node",
       "build:http": "bun build src/server/http-server.ts --outdir build --target node",
       "dev": "bun --watch src/index.ts",
       "start:http": "bun run src/server/http-server.ts",
-      "dev:http": "bun --watch src/server/http-server.ts"
+      "dev:http": "bun --watch src/server/http-server.ts",
+      "prepare": "bun run build"
     },
     devDependencies: {
       "@types/bun": "latest",
