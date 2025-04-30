@@ -1,5 +1,4 @@
 import { FastMCP } from "fastmcp";
-import { z } from "zod";
 
 /**
  * Register all prompts with the MCP server
