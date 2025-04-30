@@ -223,13 +223,21 @@ function createProjectPackageJson(serverName) {
       [serverName]: "build/index.js"
     },
     scripts: {
-      "start": "bun run src/index.ts",
-      "build": "bun build src/index.ts --outdir build --target node",
-      "build:http": "bun build src/server/http-server.ts --outdir build --target node",
-      "dev": "bun --watch src/index.ts",
-      "start:http": "bun run src/server/http-server.ts",
-      "dev:http": "bun --watch src/server/http-server.ts",
-      "prepare": "bun run build"
+      "start": "node --loader ts-node/esm src/index.ts",
+      "start:bun": "bun run src/index.ts",
+      "build": "npm run build:bun || npm run build:tsc",
+      "build:bun": "command -v bun >/dev/null && bun build src/index.ts --outdir build --target node || (echo 'Bun not found, using tsc' && npm run build:tsc)",
+      "build:tsc": "tsc --project tsconfig.json && chmod +x build/index.js",
+      "build:http": "npm run build:http:bun || npm run build:http:tsc",
+      "build:http:bun": "command -v bun >/dev/null && bun build src/server/http-server.ts --outdir build --target node || (echo 'Bun not found, using tsc' && npm run build:http:tsc)",
+      "build:http:tsc": "tsc --project tsconfig.json",
+      "dev": "nodemon --exec ts-node --esm src/index.ts",
+      "dev:bun": "bun --watch src/index.ts",
+      "start:http": "node --loader ts-node/esm src/server/http-server.ts",
+      "start:http:bun": "bun run src/server/http-server.ts",
+      "dev:http": "nodemon --exec ts-node --esm src/server/http-server.ts",
+      "dev:http:bun": "bun --watch src/server/http-server.ts",
+      "prepare": "npm run build"
     },
     devDependencies: {
       "@types/bun": "latest",
