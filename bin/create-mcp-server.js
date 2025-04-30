@@ -124,7 +124,6 @@ async function main() {
     const filesToCopy = [
       '.gitignore',
       'tsconfig.json',
-      'README.md'
     ];
     
     for (const file of filesToCopy) {
@@ -139,6 +138,9 @@ async function main() {
     
     // Create a package.json for the new project
     createProjectPackageJson(serverName);
+    
+    // Create a custom README.md
+    createCustomReadme(serverName);
     
     printColorMessage('✅ Source files copied successfully!', 'green');
     
@@ -261,6 +263,120 @@ function createProjectPackageJson(serverName) {
     JSON.stringify(projectPackageJson, null, 2)
   );
   console.log(`📄 Created ${packageJsonPath}`);
+}
+
+// Create a custom README.md for the new project
+function createCustomReadme(serverName) {
+  const readmePath = path.join(targetDir, 'README.md');
+  
+  const readmeContent = `# ${serverName}
+
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6)
+
+A custom MCP (Model Context Protocol) server built using FastMCP.
+
+## 📖 Connecting to the Server
+
+### Connecting from Cursor
+
+To connect to your MCP server from Cursor:
+
+1. Open Cursor Settings
+2. Select "MCP" section
+3. Click "Add new global MCP server"
+4. Use the following JSON:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "${serverName}": {
+      "command": "npx",
+      "args": [
+        "${process.cwd()}"
+      ],
+      "env": {
+        "ENVIRONMENT_VARIABLE": "value"
+      }
+    },
+    "${serverName}-http": {
+      "url": "http://localhost:3001/sse"
+    }
+  }
+}
+\`\`\`
+
+### Connecting from Claude Code
+
+To connect to your MCP server from Claude Code:
+
+run \`claude mcp add-json ${serverName} '{ "command": "npx", "args": [ "${process.cwd()}" ], "env": { "ENVIRONMENT_VARIABLE": "value" } }'\`
+
+### Using mcp.json with Cursor
+
+For a more portable configuration, create an \`.cursor/mcp.json\` file in your project's root directory.
+
+## 🔧 Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| PORT     | HTTP server port | 3001 |
+| HOST     | HTTP server host | 0.0.0.0 |
+
+## 🛠️ Adding Custom Tools and Resources
+
+When adding custom tools, resources, or prompts to your FastMCP server:
+
+### Tools
+
+\`\`\`typescript
+server.addTool({
+  name: "hello_world",
+  description: "A simple hello world tool",
+  parameters: z.object({
+    name: z.string().describe("Name to greet")
+  }),
+  execute: async (params) => {
+    return \`Hello, \${params.name}!\`;
+  }
+});
+\`\`\`
+
+### Resources
+
+\`\`\`typescript
+server.addResourceTemplate({
+  uriTemplate: "example://{id}",
+  name: "Example Resource",
+  mimeType: "text/plain",
+  arguments: [
+    {
+      name: "id",
+      description: "Resource ID",
+      required: true,
+    },
+  ],
+  async load({ id }) {
+    return {
+      text: \`This is an example resource with ID: \${id}\`
+    };
+  }
+});
+\`\`\`
+
+## 📚 Documentation
+
+For more information about FastMCP, visit [FastMCP GitHub Repository](https://github.com/punkpeye/fastmcp).
+
+For more information about the Model Context Protocol, visit the [MCP Documentation](https://modelcontextprotocol.io/introduction).
+
+## 📄 License
+
+This project is licensed under the MIT License.
+`;
+  
+  fs.writeFileSync(readmePath, readmeContent);
+  console.log(`📄 Created custom ${readmePath}`);
 }
 
 // Run the main function
