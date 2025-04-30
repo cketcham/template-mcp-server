@@ -3,12 +3,29 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
+import readline from 'readline';
 
 // Get the directory where the source files are stored
 const __filename = fileURLToPath(import.meta.url);
 const rootDir = path.join(path.dirname(__filename), '..');
 const sourceDir = path.join(rootDir, 'src');
 const targetDir = process.cwd();
+
+// Create readline interface for user input
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+// Promisify readline question
+const promptUser = (question) => {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      resolve(answer);
+    });
+  });
+};
 
 // Check if the target directory is empty
 const isDirectoryEmpty = () => {
@@ -29,6 +46,44 @@ const printColorMessage = (message, color) => {
   };
   
   console.log(`${colors[color]}${message}${colors.reset}`);
+};
+
+// Detect available package manager (prioritizing bun)
+const detectPackageManager = () => {
+  try {
+    execSync('which bun', { stdio: 'ignore' });
+    return 'bun';
+  } catch (error) {
+    // Bun not available, try npm
+    try {
+      execSync('which npm', { stdio: 'ignore' });
+      return 'npm';
+    } catch (error) {
+      // If neither is available, we'll default to npm and let it fail if needed
+      return 'npm';
+    }
+  }
+};
+
+// Install dependencies and build the project
+const installAndBuild = () => {
+  const packageManager = detectPackageManager();
+  
+  try {
+    printColorMessage(`\n📦 Installing dependencies using ${packageManager}...`, 'blue');
+    execSync(`${packageManager} install`, { stdio: 'inherit', cwd: targetDir });
+    
+    printColorMessage('\n🔨 Building project...', 'blue');
+    execSync(`${packageManager} run build`, { stdio: 'inherit', cwd: targetDir });
+    
+    printColorMessage('\n✅ Dependencies installed and project built successfully!', 'green');
+  } catch (error) {
+    printColorMessage(`\n⚠️ Couldn't automatically install dependencies or build: ${error.message}`, 'yellow');
+    printColorMessage('\nYou can install dependencies and build manually:', 'yellow');
+    console.log(`  cd ${targetDir}`);
+    console.log('  npm install');
+    console.log('  npm run build');
+  }
 };
 
 // Main function
@@ -55,6 +110,13 @@ async function main() {
   }
 
   try {
+    // Prompt for server name
+    const defaultName = path.basename(targetDir);
+    let serverName = await promptUser(`📝 Enter a name for your MCP server [${defaultName}]: `);
+    
+    // Use the default name if user just pressed Enter
+    serverName = serverName.trim() || defaultName;
+    
     // Copy source files to target directory
     copyFiles(sourceDir, path.join(targetDir, 'src'));
     
@@ -76,26 +138,31 @@ async function main() {
     }
     
     // Create a package.json for the new project
-    createProjectPackageJson();
+    createProjectPackageJson(serverName);
     
     printColorMessage('✅ Source files copied successfully!', 'green');
     
+    // Install dependencies and build the project
+    installAndBuild();
+    
     printColorMessage('\n🎉 MCP server project created successfully!', 'green');
-    console.log('\nNext steps:');
-    console.log('  1. Install dependencies:');
-    console.log('     npm install');
-    console.log('     # or with yarn');
-    console.log('     yarn');
-    console.log('     # or with pnpm');
-    console.log('     pnpm install');
-    console.log('     # or with bun');
-    console.log('     bun install');
-    console.log('  2. Review the README.md file for usage instructions');
-    console.log('  3. Run "npm start" or "npm run dev" to start the server');
+    console.log('\nYou can now use the server in an MCP client with JSON like this:');
+    console.log('  {');
+    console.log(`    "${serverName}": {`);
+    console.log('      "command": "npx",');
+    console.log(`      "args": [`);
+    console.log(`        "${process.cwd()}"`);
+    console.log('      ]');
+    console.log('    }');
+    console.log('  }');
     console.log('\nHappy coding! 🚀\n');
+    
+    // Close readline interface
+    rl.close();
   } catch (error) {
     printColorMessage(`\n❌ Error creating MCP server project: ${error.message}`, 'red');
     console.log('Please report this issue at: https://github.com/mcpdotdirect/create-mcp-server/issues');
+    rl.close();
     process.exit(1);
   }
 }
@@ -142,18 +209,18 @@ function copyFiles(source, destination) {
 }
 
 // Create a package.json for the new project
-function createProjectPackageJson() {
+function createProjectPackageJson(serverName) {
   const packageJsonPath = path.join(targetDir, 'package.json');
   
   const projectPackageJson = {
-    name: "mcp-server",
+    name: serverName,
     module: "src/index.ts",
     type: "module",
     version: "1.0.0",
-    description: "Model Context Protocol (MCP) Server",
+    description: `Model Context Protocol (MCP) Server - ${serverName}`,
     private: true,
     bin: {
-      "mcp-server": "build/index.js",
+      [serverName]: "build/index.js"
     },
     scripts: {
       "start": "bun run src/index.ts",
@@ -162,7 +229,7 @@ function createProjectPackageJson() {
       "dev": "bun --watch src/index.ts",
       "start:http": "bun run src/server/http-server.ts",
       "dev:http": "bun --watch src/server/http-server.ts",
-      "prepare": "bun install && bun run build"
+      "prepare": "bun run build"
     },
     devDependencies: {
       "@types/bun": "latest",
@@ -191,5 +258,6 @@ function createProjectPackageJson() {
 // Run the main function
 main().catch(error => {
   printColorMessage(`\n❌ Unexpected error: ${error.message}`, 'red');
+  rl.close();
   process.exit(1);
 }); 
