@@ -1,4 +1,4 @@
-# @mcpdotdirect/template-mcp-server
+# cketcham/template-mcp-server
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6)
@@ -8,18 +8,14 @@ A CLI tool to quickly get started building your very own MCP (Model Context Prot
 ## 📋 Usage
 
 ```bash
-# with npx
-npx @mcpdotdirect/create-mcp-server
-
-# Or with npm
-npm init @mcpdotdirect/mcp-server
+npx https://github.com/cketcham/template-mcp-server
 ```
 
 ## 🔭 What's Included
 
 The template includes:
 
-- Basic server setup with both stdio and HTTP transport options using FastMCP
+- Basic server setup with both stdio and SSE HTTP transport options using FastMCP
 - Structure for defining MCP tools, resources, and prompts
 - TypeScript configuration
 - Development scripts and configuration
