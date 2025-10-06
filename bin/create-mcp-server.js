@@ -157,6 +157,8 @@ async function main() {
     console.log('      ]');
     console.log('    }');
     console.log('  }');
+    console.log('\nOr with claude code you can add it with:');
+    console.log(`  claude mcp add ${serverName} -- npx ${process.cwd()}`);
     console.log('\nHappy coding! 🚀\n');
     
     // Close readline interface
