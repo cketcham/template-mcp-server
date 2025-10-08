@@ -230,10 +230,10 @@ function createProjectPackageJson(serverName) {
       "start": "node --loader ts-node/esm src/index.ts",
       "start:bun": "bun run src/index.ts",
       "build": "npm run build:bun || npm run build:tsc",
-      "build:bun": "command -v bun >/dev/null && bun build src/index.ts --outdir build --target node --external xsschema",
+      "build:bun": "command -v bun >/dev/null && bun build src/index.ts --outdir build --target node",
       "build:tsc": "tsc --project tsconfig.json && chmod +x build/index.js",
       "build:http": "npm run build:http:bun || npm run build:http:tsc",
-      "build:http:bun": "command -v bun >/dev/null && bun build src/server/http-server.ts --outdir build --target node --outfile http-server.js --external xsschema",
+      "build:http:bun": "command -v bun >/dev/null && bun build src/server/http-server.ts --outdir build --target node --outfile http-server.js",
       "build:http:tsc": "tsc --project tsconfig.json",
       "dev": "nodemon --exec ts-node --esm src/index.ts",
       "dev:bun": "bun --watch src/index.ts",
@@ -246,7 +246,9 @@ function createProjectPackageJson(serverName) {
     devDependencies: {
       "@types/bun": "latest",
       "@types/cors": "^2.8.17",
-      "@types/node": "^20.11.0"
+      "@types/node": "^24.7.0",
+      "nodemon": "^3.1.10",
+      "ts-node": "^10.9.2"
     },
     peerDependencies: {
       "typescript": "^5.8.2",
@@ -254,9 +256,15 @@ function createProjectPackageJson(serverName) {
       "effect": "^3.14.4"
     },
     dependencies: {
-      "fastmcp": "^1.21.0",
+      "fastmcp": "^1.27.7",
       "cors": "^2.8.5",
-      "zod": "^3.24.2"
+      "zod": "^3.25.76"
+    },
+    engines: {
+      "node": ">=18.0.0"
+    },
+    volta: {
+      "node": "20.18.1"
     }
   };
   
